@@ -24,8 +24,26 @@ class Trains(models.Model):
     TrainId = models.AutoField(primary_key=True)
     TrainNumber = models.CharField(max_length=500)
     Company = models.CharField(max_length=500)
-    Distance = models.IntegerField()
-    DepartureTime = models.DateTimeField()
-    ArrivalTime = models.DateTimeField()
-    Date = models.DateField()
+    RouteId = models.ForeignKey(Routes, on_delete=models.CASCADE)
+    
+class TrainSeats(models.Model):
+    SeatId = models.AutoField(primary_key=True)
+    SeatNumber = models.IntegerField()
+    Class = models.IntegerField()
+    TrainId = models.ForeignKey('Trains', on_delete=models.CASCADE)
+    IsBooked = models.BooleanField(default=False)
+
+class TicketCategory(models.Model):
+    TicketCategoryId = models.AutoField(primary_key=True)
+    Type = models.CharField(max_length=500)
+
+class Tickets(models.Model):
+    TicketId = models.AutoField(primary_key=True)
+    TrainId = models.ForeignKey('Trains', on_delete=models.CASCADE)
+    UserId = models.ForeignKey('Users', on_delete=models.CASCADE)
+    SeatId = models.ForeignKey('Seat', on_delete=models.CASCADE)
+    TicketCategory = models.ForeignKey('TicketCategory', on_delete=models.CASCADE)
+    Price = models.DecimalField(max_digits=10, decimal_places=2)
+    IsPaid = models.BooleanField(default=False)
+
     
