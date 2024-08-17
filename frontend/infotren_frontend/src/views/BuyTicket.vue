@@ -39,14 +39,15 @@
  <div v-if="searchCompleted">
         <h4>Available Routes:</h4>
         <div v-if="searchResults.routes.length">
-          <div v-for="routeInfo in searchResults.routes" :key="routeInfo.route.RouteId">
-            <p>Date: {{ routeInfo.route.Date }} - From: {{ routeInfo.route.StartStation }} To: {{ routeInfo.route.EndStation }}</p>
-            <p>Distance: {{ routeInfo.route.Distance }} km</p>
-            <p>Departure Time: {{ routeInfo.route.DepartureTime }} - Arrival Time: {{ routeInfo.route.ArrivalTime }}</p>
+          <div v-for="routeInfo in searchResults.routes" :key="routeInfo.route.RouteId" class="route-box">
+            <p><strong>Date:</strong> {{ routeInfo.route.Date }} - From: {{ routeInfo.route.StartStation }} To: {{ routeInfo.route.EndStation }}</p>
+            <p><strong>Distance:</strong> {{ routeInfo.route.Distance }} km</p>
+            <p><strong>Departure Time:</strong> {{ routeInfo.route.DepartureTime }} - Arrival Time: {{ routeInfo.route.ArrivalTime }}</p>
             <h5>Trains on this Route:</h5>
             <ul>
               <li v-for="train in routeInfo.trains" :key="train.TrainId">
                 Train Number: {{ train.TrainNumber }} - Company: {{ train.Company }}
+                <button class="btn btn-secondary btn-sm ml-2" @click="selectTrain(train)">Select</button>
               </li>
             </ul>
           </div>
@@ -101,7 +102,34 @@
 };
 </script>
   
-  <style scoped>
-  /* Add custom styles if needed */
-  </style>
+<style scoped>
+.route-box {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  background-color: #f9f9f9;
+}
+
+.route-box p {
+  margin: 0;
+  padding: 4px 0;
+}
+
+.route-box ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.route-box li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.route-box .btn {
+  margin-left: 8px;
+}
+</style>
   

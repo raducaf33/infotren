@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'InfoTren.apps.InfotrenConfig'   
 ]
 
+AUTH_USER_MODEL = 'InfoTren.Users'
 CORS_ORIGIN_ALLOW_ALL= True
 
 AUTHENTICATION_BACKENDS = [
