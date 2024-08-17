@@ -26,8 +26,8 @@ class SearchTicketsAPIView(APIView):
                 StartStation__icontains=departure_place,
                 EndStation__icontains=arrival_place,
                 Date=date
-            )
-            
+            ) 
+
             if routes.exists():
                 route_data = []
                 for route in routes:
@@ -38,10 +38,13 @@ class SearchTicketsAPIView(APIView):
                         'trains': TrainsSerializer(trains, many=True).data,
                     }
                     route_data.append(route_info)
-                
+                    
                 return Response(route_data, status=status.HTTP_200_OK)
             else:
                 return Response({'message': 'No routes found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            # Log the exception and return a 500 error if needed
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)        
 
 class LoginAPIView(APIView):
     serializer_class = LoginSerializer
@@ -51,9 +54,9 @@ class LoginAPIView(APIView):
         if serializer.is_valid():
             username = serializer.validated_data['username']
             password = serializer.validated_data['password']
-            
+
             try:
-                user = Users.objects.get(Username=username)
+                user = Users.objects.get(Username=username) 
             except Users.DoesNotExist:
                 return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
             
@@ -67,8 +70,7 @@ class LoginAPIView(APIView):
             else:
                 return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
-
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
@@ -232,5 +234,4 @@ def ticketsApi(request, id=0):
     elif request.method=='DELETE':
         tickets=Tickets.objects.get(TicketId=id)
         tickets.delete()
-        return JsonResponse("Deleted Succesfully", safe=False)                              
-
+        return JsonResponse("Deleted Succesfully", safe=False) 

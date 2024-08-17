@@ -84,18 +84,16 @@
 
         console.log(response.data); // Debug output
 
-        // Check if routes are present
-        if (response.data.routes && response.data.routes.length > 0) {
-          this.searchResults = response.data;
-          this.message = response.data.message;
-        } else {
-          this.searchResults = { routes: [], message: 'No routes found' };
-          this.message = 'No routes found';
-        }
+          // Update the structure to match what the template expects
+      if (Array.isArray(response.data)) {
+        this.searchResults = { routes: response.data, message: '' };
+      } else {
+        this.searchResults = { routes: [], message: 'No routes found' };
+      }
         this.searchCompleted = true; // Set search as completed
       } catch (error) {
         console.error('Search failed:', error);
-        this.message = 'Search failed. Please try again.';
+        this.searchResults = { routes: [], message: 'Search failed. Please try again.' };
         this.searchCompleted = true; // Ensure searchCompleted is true even on error
       }
     },
