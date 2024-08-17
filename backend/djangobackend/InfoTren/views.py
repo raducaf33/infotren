@@ -2,11 +2,81 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from django.http.response import JsonResponse
-
+from rest_framework import permissions, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import check_password
+from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.models import update_last_login
 from InfoTren.models import Users, Routes, Trains, TrainSeats, TicketCategory, Tickets
-from InfoTren.serializers import UsersSerializer, RoutesSerializer, TrainsSerializer, TrainSeatsSerializer, TicketCategorySerializer, TicketsSerializer
+from InfoTren.serializers import UsersSerializer, RoutesSerializer, TrainsSerializer, TrainSeatsSerializer, TicketCategorySerializer, TicketsSerializer, RegisterSerializer, LoginSerializer
 
 # Create your views here. definesc API
+class SearchTicketsAPIView(APIView):
+    def post(self, request):
+        departure_place = request.data.get('departure_place')
+        arrival_place = request.data.get('arrival_place')
+        date = request.data.get('date')
+
+        try:
+            # Perform the search query
+            routes = Routes.objects.filter(
+                StartStation__icontains=departure_place,
+                EndStation__icontains=arrival_place,
+                Date=date
+            )
+            
+            if routes.exists():
+                route_data = []
+                for route in routes:
+                    # Get trains for this specific route
+                    trains = Trains.objects.filter(RouteId=route)
+                    route_info = {
+                        'route': RoutesSerializer(route).data,
+                        'trains': TrainsSerializer(trains, many=True).data,
+                    }
+                    route_data.append(route_info)
+                
+                return Response(route_data, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': 'No routes found'}, status=status.HTTP_404_NOT_FOUND)
+
+class LoginAPIView(APIView):
+    serializer_class = LoginSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            username = serializer.validated_data['username']
+            password = serializer.validated_data['password']
+            
+            try:
+                user = Users.objects.get(Username=username)
+            except Users.DoesNotExist:
+                return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            if check_password(password, user.Password):
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    'message': 'Login successful',  # Add success message
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token)
+                })
+            else:
+                return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class RegisterView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            users = serializer.save()
+            return Response({"message": "User created successfully"}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @csrf_exempt
 def usersApi(request, id=0):

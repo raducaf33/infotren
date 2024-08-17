@@ -44,6 +44,15 @@ INSTALLED_APPS = [
 
 CORS_ORIGIN_ALLOW_ALL= True
 
+AUTHENTICATION_BACKENDS = [
+    'InfoTren.backends.EmailBackend',  # Your custom EmailBackend
+    'django.contrib.auth.backends.ModelBackend',  # Default backend to allow username authentication as well
+]
+
+SIMPLE_JWT = {
+    'USER_ID_FIELD': 'UserId',  # Use the name of your custom field
+}
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',

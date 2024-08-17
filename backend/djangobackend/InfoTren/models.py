@@ -1,5 +1,5 @@
 from django.db import models
-
+from datetime import datetime
 # Create your models here.
 
 class Users(models.Model):
@@ -16,9 +16,10 @@ class Routes(models.Model):
     StartStation = models.CharField(max_length=500)
     EndStation = models.CharField(max_length=500)
     Distance = models.IntegerField()
-    DepartureTime = models.DateTimeField()
-    ArrivalTime = models.DateTimeField()
+    DepartureTime = models.TimeField()
+    ArrivalTime = models.TimeField()
     Date = models.DateField()
+  
 
 class Trains(models.Model):
     TrainId = models.AutoField(primary_key=True)
