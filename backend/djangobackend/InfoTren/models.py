@@ -12,9 +12,12 @@ from django.contrib.auth.models import AbstractUser
 #    Phone = models.CharField(max_length=10)
 #    Email =models.CharField(max_length=500)
 
+
+
 class Users(AbstractUser):
     UserId = models.AutoField(primary_key=True)
     phone = models.CharField(max_length=10)
+    is_admin = models.BooleanField(default=False)
 
     
 class Routes(models.Model):
@@ -52,5 +55,6 @@ class Tickets(models.Model):
     TicketCategory = models.ForeignKey('TicketCategory', on_delete=models.CASCADE)
     Price = models.DecimalField(max_digits=10, decimal_places=2)
     IsPaid = models.BooleanField(default=False)
+    BookingTime = models.DateTimeField(auto_now_add=True)  # Time of booking
 
     

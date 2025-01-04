@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles', 
     'rest_framework',
     'corsheaders',
-    'InfoTren.apps.InfotrenConfig' 
+    'InfoTren.apps.InfotrenConfig', 
+    'django_cron'
     
 ]
 
@@ -55,6 +56,15 @@ SIMPLE_JWT = {
     'USER_ID_FIELD': 'UserId',  # Use the name of your custom field
 }
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+}
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -67,6 +77,9 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'djangobackend.urls'
+
+APPEND_SLASH = False
+
 
 TEMPLATES = [
     {
@@ -143,3 +156,13 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+#email settings
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # De exemplu, pentru Gmail
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'raducatest@gmail.com'
+EMAIL_HOST_PASSWORD = 'Amuitatparola956'

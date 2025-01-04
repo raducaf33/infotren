@@ -134,23 +134,38 @@ export default {
       availableSeats: [],
       seatSelectionStarted: false,
       selectedSeats: [],
+      
       paymentStep: false, // New property to control visibility of the payment section
       paymentInfo: { // Store payment details
         cardNumber: '',
         expiryDate: '',
         cvv: ''
       },
+      tickets: [],
       paymentMessage: '' // Mesajul pentru succesul sau eșecul plății
     };
   },
   methods: {
     async searchTickets() {
+      
       try {
+        const accessToken = localStorage.getItem('access_token'); // Ensure you have the access token
+        if (!accessToken) {
+           console.error("Access token is missing. Please log in.");
+           this.searchResults = { routes: [], message: "You need to log in." };
+           return;
+        }
         const response = await axios.post('http://127.0.0.1:8000/search-tickets/', {
           departure_place: this.departurePlace,
           arrival_place: this.arrivalPlace,
           date: this.date,
-        });
+          
+        },{
+            headers: {
+                'Authorization': `Bearer ${accessToken}`, // Attach the access token
+                'Content-Type': 'application/json'
+            }
+      });
 
         console.log(response.data);
 
@@ -202,51 +217,53 @@ export default {
       }
     },
     async confirmBooking() {
+  // Verificați dacă utilizatorul este autentificat
+  const accessToken = localStorage.getItem('access_token'); // Asigurați-vă că aveți acces token-ul
+  if (!accessToken) {
+    alert("You must be logged in to confirm a booking.");
+    return; // Prevenirea execuției ulterioare dacă nu este autentificat
+  }
+
+  // Pregătirea detaliilor de rezervare
   const bookingDetails = {
-    train_id: this.selectedTrain.TrainId, // Asigură-te că folosești cheia corectă
-    seat_ids: this.selectedSeats, // Asigură-te că seat_ids este corect
-    ticket_types: this.ticketTypes // Asigură-te că ticket_types este în formatul corect
+    train_id: this.selectedTrain.TrainId, // Asigurați-vă că folosiți cheia corectă
+    seat_ids: this.selectedSeats, // Asigurați-vă că seat_ids este corect
+    ticket_types: this.ticketTypes // Asigurați-vă că ticket_types este în formatul corect
   };
 
   try {
-    const response = await axios.post('http://127.0.0.1:8000/confirm-booking/', bookingDetails);
+    // Trimiterea cererii pentru a confirma rezervarea
+    const response = await axios.post('http://127.0.0.1:8000/confirm-booking/', bookingDetails, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`, // Adăugați token-ul de acces
+        'Content-Type': 'application/json' // Opțional, dar recomandat
+      },
+    });
 
+    // Gestionarea răspunsului de la backend
     if (response.data.success) {
-      // Afișează secțiunea de plată
-      this.paymentStep = true; // Setează paymentStep la true
+      // Afișează secțiunea de plată dacă rezervarea este confirmată
+      this.paymentStep = true; // Setează paymentStep la true pentru a continua
     } else {
+      // Dacă rezervarea nu reușește, afișează mesajul corespunzător
       alert(response.data.message || 'Failed to confirm booking. Please try again.');
     }
   } catch (error) {
+    // Capturează orice eroare care apare în timpul procesului de rezervare
     console.error('Booking confirmation failed:', error);
     alert('Failed to confirm booking. Please try again.');
   }
 },
-async submitPayment() {
-    // Simulăm plata
-    try {
-      const response = await axios.post('http://127.0.0.1:8000/fake-payment/', {
-        card_number: this.cardNumber,
-        expiry_date: this.expiryDate,
-        cvv: this.cvv
-      });
 
-      if (response.data.success) {
-        // Afișează mesajul de succes
-        alert('Plata a fost efectuată cu succes!');
-        // Trimite un eveniment către componenta părinte sau modifică starea locală
-        this.$emit('payment-processed', { success: true, message: response.data.message });
+  handlePaymentProcessed(paymentResult) {
+      if (paymentResult.success) {
+        alert('Payment successful! Your tickets are confirmed.');
       } else {
-        // Afișează un mesaj de eroare
-        alert('Plata a eșuat. Încercați din nou.');
+        alert('Payment failed: ' + paymentResult.message);
       }
-    } catch (error) {
-      console.error("Eroare la efectuarea plății:", error);
-      alert('A apărut o eroare la procesarea plății.');
-    }
-  }
-  
-  }
+      this.paymentStep = false; // Hide the payment form after processing
+    },
+  },
 };
 </script>
 

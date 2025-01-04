@@ -50,7 +50,7 @@ class LoginSerializer(serializers.Serializer):
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
-        fields = ('UserId', 'first_name', 'last_name', 'email', 'phone')
+        fields = ('UserId', 'first_name', 'last_name', 'email', 'phone', 'username', 'is_admin')
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -58,16 +58,19 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Users
-        fields = ('password', 'confirm_password','first_name','last_name','email','phone')
+        fields = ('username', 'password', 'confirm_password', 'first_name', 'last_name', 'email', 'phone')
 
     def validate(self, data):
         if data['password'] != data['confirm_password']:
             raise serializers.ValidationError("Passwords do not match.")
+        if not data.get('username'):
+            raise serializers.ValidationError("Username is required.")
         return data
 
     def create(self, validated_data):
         validated_data.pop('confirm_password')  # Remove confirm_password from validated_data
         user = Users(
+            username=validated_data['username'],  # Ensure username is included
             password=make_password(validated_data['password']),  # Hash the password
             first_name=validated_data['first_name'],
             last_name=validated_data['last_name'],

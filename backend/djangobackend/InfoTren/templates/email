@@ -1,0 +1,16 @@
+<p>Dragă {{ user.first_name }},</p>
+
+<p>Îți reamintim despre călătoria ta viitoare:</p>
+<ul>
+    <li><strong>Stație de plecare:</strong> {{ start_station }}</li>
+    <li><strong>Stație de sosire:</strong> {{ end_station }}</li>
+    <li><strong>Data:</strong> {{ date }}</li>
+    <li><strong>Ora plecării:</strong> {{ departure_time }}</li>
+    <li><strong>Ora sosirii:</strong> {{ arrival_time }}</li>
+    <li><strong>Locul tău:</strong> {{ seat_number }}</li>
+    <li><strong>Numărul trenului:</strong> {{ train_number }}</li>
+</ul>
+
+<p>Îți dorim o călătorie plăcută!</p>
+<p>Cu drag,</p>
+<p>Echipa noastră</p>

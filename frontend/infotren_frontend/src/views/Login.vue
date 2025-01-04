@@ -47,9 +47,20 @@ export default {
                 localStorage.setItem('refresh_token', response.data.refresh);
                 localStorage.setItem('first_name', response.data.first_name);
                 localStorage.setItem('last_name', response.data.last_name);
-
+                localStorage.setItem('is_admin', response.data.is_admin); // Salvăm is_admin
+                
+                // Update the authState directly to trigger reactivity
+                this.$root.authState.isLoggedIn = true;
+                this.$root.authState.firstName = response.data.first_name;
+                this.$root.authState.lastName = response.data.last_name;
+                
                 // Redirect to a blank page or another route
-                this.$router.push('/');
+                if (response.data.is_admin) {
+            this.$router.push('/admin-dashboard'); // Redirecționare pentru admin
+          } else {
+            this.$router.push('/'); // Redirecționare pentru utilizator normal
+          }
+                
             } catch (error) {
                 console.error('Login failed:', error);
                 // Handle login error (e.g., show error message)
@@ -58,3 +69,4 @@ export default {
     }
 };
 </script>
+
