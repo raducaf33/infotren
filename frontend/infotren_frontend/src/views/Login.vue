@@ -7,8 +7,8 @@
             </div>
             <form @submit.prevent="login">
                 <div class="form-group">
-                    <label>Username</label>
-                    <input v-model="username" type="text" class="form-control" required />
+                    <label>Email</label>
+                    <input v-model="email" type="text" class="form-control" required />
                 </div>
                 <div class="form-group">
                     <label>Password</label>
@@ -29,7 +29,7 @@ import { useRouter } from 'vue-router';
 export default {
     data() {
         return {
-            username: '',
+            email: '',
             password: '',
         };
     },
@@ -37,15 +37,19 @@ export default {
         async login() {
             try {
                 const response = await axios.post('http://127.0.0.1:8000/login/', {
-                    username: this.username,
+                    email: this.email,
                     password: this.password
                 });
+                console.log(response.data);
 
                 // Save the token (if applicable)
-                localStorage.setItem('token', response.data.access);
+                localStorage.setItem('access_token', response.data.access);
+                localStorage.setItem('refresh_token', response.data.refresh);
+                localStorage.setItem('first_name', response.data.first_name);
+                localStorage.setItem('last_name', response.data.last_name);
 
                 // Redirect to a blank page or another route
-                this.$router.push('/blank-page');
+                this.$router.push('/');
             } catch (error) {
                 console.error('Login failed:', error);
                 // Handle login error (e.g., show error message)

@@ -16,10 +16,6 @@
               <input v-model="last_name" type="text" class="form-control" />
             </div>
             <div class="form-group">
-              <label>Username</label>
-              <input v-model="username" type="text" class="form-control" />
-            </div>
-            <div class="form-group">
               <label>Email</label>
               <input v-model="email" type="text" class="form-control" />
             </div>
@@ -55,7 +51,6 @@
       return {
         first_name: '',
         last_name: '',
-        username: '',
         email: '',
         phone: '',
         password: '',
@@ -70,7 +65,7 @@
         this.success = false;
   
         // Basic client-side validation
-        if (!this.first_name || !this.last_name || !this.username || !this.email || !this.phone || !this.password || !this.confirm_password) {
+        if (!this.first_name || !this.last_name || !this.email || !this.phone || !this.password || !this.confirm_password) {
           this.error = 'All fields are required.';
           return;
         }
@@ -80,15 +75,14 @@
         }
   
         try {
-                  const response = await axios.post(`${variables.API_URL}register`, {
-            Username: this.username,
+          const response = await axios.post(`${variables.API_URL}register`, {
+            first_name: this.first_name,
+            last_name: this.last_name,
+            email: this.email,
+            phone: this.phone,
             password: this.password,
-            confirm_password: this.confirm_password,
-            Firstname: this.first_name,
-            Lastname: this.last_name,
-            Phone: this.phone,
-            Email: this.email
-            });
+            confirm_password: this.confirm_password
+          });
 
           this.success = true;
           this.error = null;

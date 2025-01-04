@@ -14,14 +14,9 @@ from django.contrib.auth.models import AbstractUser
 
 class Users(AbstractUser):
     UserId = models.AutoField(primary_key=True)
-    Username = models.CharField(max_length=500)
-    Password = models.CharField(max_length=500)
-    Firstname = models.CharField(max_length=500)
-    Lastname = models.CharField(max_length=500)
-    Phone = models.CharField(max_length=10)
-    Email = models.EmailField(max_length=500, unique=True)
+    phone = models.CharField(max_length=10)
 
-
+    
 class Routes(models.Model):
     RouteId = models.AutoField(primary_key=True)
     StartStation = models.CharField(max_length=500)

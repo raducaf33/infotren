@@ -24,6 +24,12 @@ urlpatterns=[
     re_path(r'^register$', views.RegisterView.as_view()), # User registration
     re_path(r'^login/$', views.LoginAPIView.as_view()),
 
-    re_path(r'^search-tickets/$', views.SearchTicketsAPIView.as_view())
+    re_path(r'^search-tickets/$', views.SearchTicketsAPIView.as_view()),
+
+    re_path(r'^api/seats$', views.AvailableSeatsAPIView.as_view()),
+
+    re_path(r'^confirm-booking/', views.ConfirmBookingAPIView.as_view()),
+    re_path(r'^fake-payment/', views.FakePaymentAPIView.as_view())
+
      
 ]

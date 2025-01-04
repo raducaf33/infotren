@@ -32,6 +32,9 @@ const router = createRouter({
       name: 'signup',
       component: SignUp
     }
+
+
+  
   ]
 })
 

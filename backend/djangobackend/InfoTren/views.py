@@ -10,8 +10,100 @@ from django.contrib.auth.hashers import check_password
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import update_last_login
+from django.db import transaction
+from  django.dispatch import receiver
+from django.http import JsonResponse
+import random
+from django.db.models.signals import post_save
+
 from InfoTren.models import Users, Routes, Trains, TrainSeats, TicketCategory, Tickets
 from InfoTren.serializers import UsersSerializer, RoutesSerializer, TrainsSerializer, TrainSeatsSerializer, TicketCategorySerializer, TicketsSerializer, RegisterSerializer, LoginSerializer
+
+class FakePaymentAPIView(APIView):
+    def post(self, request):
+        # Preluarea detaliilor de plată din request
+        card_number = request.data.get('card_number')
+        expiry_date = request.data.get('expiry_date')
+        cvv = request.data.get('cvv')
+
+        # Verificarea dacă toate câmpurile sunt completate
+        if card_number is None or expiry_date is None or cvv is None:
+            return JsonResponse({'success': False, 'message': 'Toate câmpurile sunt necesare.'}, status=400)
+
+        # Validarea elementară a detaliilor cardului (16 cifre pentru card și 3 cifre pentru CVV)
+        if len(card_number) == 16 and len(cvv) == 3:
+            # Simularea unei plăți cu șanse de succes de 90%
+            if random.random() < 0.9:
+                return JsonResponse({'success': True, 'message': 'Plata a fost efectuată cu succes!'})
+            else:
+                return JsonResponse({'success': False, 'message': 'Plata a eșuat. Încercați din nou.'})
+        else:
+            return JsonResponse({'success': False, 'message': 'Detalii card invalide.'}, status=400)
+
+class ConfirmBookingAPIView(APIView):
+    def post(self, request):
+        try:
+            train_id = request.data.get('train_id')
+            seat_ids = request.data.get('seat_ids')
+            ticket_types = request.data.get('ticket_types')
+
+            # Verificare dacă datele sunt valide
+            if not train_id or not seat_ids or not ticket_types:
+                
+                return JsonResponse({'success': False, 'message': 'Missing required fields.'}, status=400)
+
+            # Aici ar trebui să fie logica ta pentru rezervare
+            # Simulează un răspuns de succes
+            return JsonResponse({'success': True, 'message': 'Booking confirmed!'})
+        
+        except Exception as e:
+            logger.error(f"Error confirming booking: {str(e)}")
+            return JsonResponse({'success': False, 'message': 'A apărut o eroare. Vă rugăm să încercați din nou.'}, status=500)           
+
+class AvailableSeatsAPIView(APIView):
+    def get(self, request):
+        train_id = request.query_params.get('trainId')
+        if not train_id:
+            return Response({"error": "Train ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        seats = TrainSeats.objects.filter(TrainId=train_id).values('SeatId', 'SeatNumber', 'Class', 'IsBooked')
+        return Response(list(seats), status=status.HTTP_200_OK)
+
+class SelectSeatAPIView(APIView):
+    def post(self, request):
+        train_id = request.data.get('train_id')
+        seat_numbers = request.data.get('seat_numbers')
+        ticket_types = request.data.get('ticket_types')
+
+        # Initialize a list to keep track of any errors
+        errors = []
+
+        # Fetch all seat instances in a single query
+        seats = TrainSeats.objects.filter(SeatNumber__in=seat_numbers, TrainId=train_id)
+
+        # Check if the number of seats fetched matches the seat_numbers provided
+        if len(seats) != len(seat_numbers):
+            return Response({"error": "Some seats do not exist."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            with transaction.atomic():
+                # Iterate through the fetched seats and book them if available
+                for seat in seats:
+                    if seat.IsBooked:
+                        errors.append(f"Seat {seat.SeatNumber} is already booked.")
+                    else:
+                        seat.IsBooked = True
+                        seat.save()
+
+            # If any errors occurred, return them in the response
+            if errors:
+                return Response({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response({"message": "Seats booked successfully!"}, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 # Create your views here. definesc API
 class SearchTicketsAPIView(APIView):
@@ -52,20 +144,22 @@ class LoginAPIView(APIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            username = serializer.validated_data['username']
+            email = serializer.validated_data['email']
             password = serializer.validated_data['password']
 
             try:
-                user = Users.objects.get(Username=username) 
+                user = Users.objects.get(email=email) 
             except Users.DoesNotExist:
                 return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
             
-            if check_password(password, user.Password):
+            if check_password(password, user.password):
                 refresh = RefreshToken.for_user(user)
                 return Response({
                     'message': 'Login successful',  # Add success message
                     'refresh': str(refresh),
-                    'access': str(refresh.access_token)
+                    'access': str(refresh.access_token),
+                    'first_name': user.first_name,  # Include first name
+                    'last_name': user.last_name
                 })
             else:
                 return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -78,7 +172,11 @@ class RegisterView(APIView):
         if serializer.is_valid():
             users = serializer.save()
             return Response({"message": "User created successfully"}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # Debug: Print validation errors
+            print(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
+        
 
 @csrf_exempt
 def usersApi(request, id=0):

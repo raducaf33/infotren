@@ -39,14 +39,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles', 
     'rest_framework',
     'corsheaders',
-    'InfoTren.apps.InfotrenConfig'   
+    'InfoTren.apps.InfotrenConfig' 
+    
 ]
 
 AUTH_USER_MODEL = 'InfoTren.Users'
 CORS_ORIGIN_ALLOW_ALL= True
 
 AUTHENTICATION_BACKENDS = [
-    'InfoTren.backends.EmailBackend',  # Your custom EmailBackend
+    'InfoTren.serializers.EmailBackend',  # Your custom EmailBackend
     'django.contrib.auth.backends.ModelBackend',  # Default backend to allow username authentication as well
 ]
 
